@@ -3,17 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { debounce } from 'ts-debounce';
 import { Form, Formik } from 'formik';
 import * as yup from 'yup';
-import { Box, color, Input, Stack, Text } from '@stacks/ui';
+import { Box, Stack, Text } from '@stacks/ui';
 
 import { useRouteHeader } from '@app/common/hooks/use-route-header';
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
 import { useWallet } from '@app/common/hooks/use-wallet';
 import { useOnboardingState } from '@app/common/hooks/auth/use-onboarding-state';
 import {
-  validatePassword,
   blankPasswordValidation,
+  validatePassword,
 } from '@app/common/validation/validate-password';
-import { ErrorLabel } from '@app/components/error-label';
 import { PrimaryButton } from '@app/components/primary-button';
 import { Caption } from '@app/components/typography';
 import { Header } from '@app/components/header';
@@ -26,6 +25,9 @@ import { RouteUrls } from '@shared/route-urls';
 import { getWalletConfig } from '@shared/utils/wallet-config-helper';
 import { OnboardingSelectors } from '@tests/integration/onboarding/onboarding.selectors';
 
+import { ConfirmPasswordField } from './components/confirm-password-field';
+import { PasswordField } from './components/password-field';
+
 interface SetPasswordFormValues {
   password: string;
   confirmPassword: string;
@@ -35,6 +37,7 @@ const setPasswordFormValues: SetPasswordFormValues = { password: '', confirmPass
 export const SetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [strengthResult, setStrengthResult] = useState(blankPasswordValidation);
+  const [matchResult, setMatchResult] = useState(false);
   const { finishSignIn, setPassword, wallet } = useWallet();
   const navigate = useNavigate();
   const { decodedAuthRequest } = useOnboardingState();
@@ -90,7 +93,7 @@ export const SetPasswordPage = () => {
   const validationSchema = yup.object({
     password: yup
       .string()
-      .defined()
+      .required()
       .test({
         message: 'Weak',
         test: debounce((value: unknown) => {
@@ -105,9 +108,19 @@ export const SetPasswordPage = () => {
       }),
     confirmPassword: yup
       .string()
-      .test('password-confirmation', 'Enter password again to confirm', function (value) {
-        return this.parent.password === value
+      .when('password', {
+        is: (val: string | any[]) => val && val.length > 0,
+        then: yup.string().required(),
       })
+      .test({
+        message: 'Do not match',
+        test: debounce((value: unknown, context) => {
+          if (typeof value !== 'string') return false;
+          const result = context.options.parent.password === value;
+          setMatchResult(result);
+          return result;
+        }, HUMAN_REACTION_DEBOUNCE_TIME) as unknown as yup.TestFunction<any, any>,
+      }),
   });
 
   return (
@@ -116,10 +129,9 @@ export const SetPasswordPage = () => {
         initialValues={setPasswordFormValues}
         onSubmit={onSubmit}
         validationSchema={validationSchema}
-        validateOnBlur={false}
         validateOnMount={false}
       >
-        {formik => (
+        {({ dirty, isSubmitting, isValid }) => (
           <Form>
             <Stack
               maxWidth={CENTERED_FULL_PAGE_MAX_WIDTH}
@@ -135,53 +147,18 @@ export const SetPasswordPage = () => {
               <Text lineHeight="1.5rem">
                 Your password protects your Secret Key and is for this device only. To access your
                 Stacks account on another device or wallet you’ll need just your Secret Key.
-                {!formik.isSubmitting && !strengthResult.meetsAllStrengthRequirements && (
-                  <Caption fontSize={0} mt="base-loose">
-                    Use a stronger password. Longer than 12 characters, with symbols, numbers, and
-                    words.
-                  </Caption>
-                )}
+                <Caption fontSize={0} mt="base-loose" px={['unset', 'base']}>
+                  Use a strong password. Longer than 12 characters, with symbols, numbers, and
+                  words.
+                </Caption>
               </Text>
               <Stack px={['unset', 'base-loose']} spacing="base">
-                <Input
-                  autoFocus
-                  data-testid={OnboardingSelectors.NewPasswordInput}
-                  height="64px"
-                  key="password-input"
-                  name="password"
-                  onChange={formik.handleChange}
-                  placeholder="Set a password"
-                  type="password"
-                  value={formik.values.password}
-                  isDisabled={loading}
-                />
-                {formik.errors.password && (
-                  <Stack alignItems="center" isInline>
-                    <Caption mr="4px !important">Password strength:</Caption>
-                    <Caption color={color('feedback-error')}>{formik.errors.password}</Caption>
-                  </Stack>
-                )}
-                <Input
-                  data-testid={OnboardingSelectors.ConfirmPasswordInput}
-                  height="64px"
-                  key="confirm-password-input"
-                  name="confirmPassword"
-                  onChange={formik.handleChange}
-                  placeholder="Confirm password"
-                  type="password"
-                  value={formik.values.confirmPassword}
-                  width="100%"
-                  isDisabled={loading}
-                />
-                {formik.errors.confirmPassword && (
-                  <ErrorLabel>
-                    <Text textStyle="caption">{formik.errors.confirmPassword}</Text>
-                  </ErrorLabel>
-                )}
+                <PasswordField strengthResult={strengthResult} />
+                <ConfirmPasswordField matchResult={matchResult} />
                 <PrimaryButton
                   data-testid={OnboardingSelectors.SetPasswordBtn}
-                  isDisabled={loading || !(formik.isValid && formik.dirty)}
-                  isLoading={loading || formik.isSubmitting}
+                  isDisabled={loading || !(dirty && isValid)}
+                  isLoading={loading || isSubmitting}
                   mt="tight"
                 >
                   Continue
