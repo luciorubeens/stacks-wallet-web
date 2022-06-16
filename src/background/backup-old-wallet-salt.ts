@@ -3,7 +3,7 @@ import { gaiaUrl } from '@shared/constants';
 import { createWalletGaiaConfig, generateWallet } from '@stacks/wallet-sdk';
 import { GaiaHubConfig, uploadToGaiaHub } from '@stacks/storage';
 import { decryptContent, encryptContent, getPublicKeyFromPrivate } from '@stacks/encryption';
-import { fetchPrivate } from '@stacks/common';
+import { fetchPrivate } from '@shared/utils/fetch';
 
 const walletSaltBackup = 'wallet-salt-backup';
 

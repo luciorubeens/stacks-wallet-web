@@ -8,6 +8,7 @@ import { ChainID } from '@stacks/transactions';
 import { transactionRequestNetwork } from '@app/store/transactions/requests';
 import { makeLocalDataKey } from '@app/common/store-utils';
 import { whenChainId } from '@app/common/transactions/transaction-utils';
+import { fetchPrivate } from '@shared/utils/fetch';
 
 // Our root networks list, users can add to this list and it will persist to localstorage
 export const networksState = atomWithStorage<Networks>(
@@ -46,7 +47,7 @@ export const currentStacksNetworkState = atom<StacksNetwork>(get => {
   const network = get(currentNetworkState);
 
   const stacksNetwork = whenChainId(network.chainId)({
-    [ChainID.Mainnet]: new StacksMainnet({ url: network.url }),
+    [ChainID.Mainnet]: new StacksMainnet({ fetchFn: fetchPrivate, url: network.url }),
     [ChainID.Testnet]: new StacksTestnet({ url: network.url }),
   });
 

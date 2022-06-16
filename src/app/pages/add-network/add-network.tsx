@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input, Stack } from '@stacks/ui';
-import { ChainID, fetchPrivate } from '@stacks/transactions';
+import { ChainID } from '@stacks/transactions';
 import { Formik } from 'formik';
 
 import { useRouteHeader } from '@app/common/hooks/use-route-header';
@@ -18,6 +18,7 @@ import {
   useUpdateNetworkState,
 } from '@app/store/network/networks.hooks';
 import { NetworkSelectors } from '@tests/integration/network.selectors';
+import { fetchPrivate } from '@shared/utils/fetch';
 
 interface AddNetworkFormValues {
   key: string;
