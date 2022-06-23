@@ -7,6 +7,9 @@ export function openInNewTab(url: string) {
   if (newWindow) newWindow.opener = null;
 }
 
-export function openIndexPageInNewTab(path: RouteUrls | string) {
-  return chrome.tabs.create({ url: chrome.runtime.getURL('index.html#' + path) });
+export function openIndexPageInNewTab(path: RouteUrls | string, urlParams?: URLSearchParams) {
+  const paramsString = urlParams ? `?${urlParams.toString()}` : '';
+  return chrome.tabs.create({
+    url: chrome.runtime.getURL(`index.html#${path}` + paramsString),
+  });
 }
