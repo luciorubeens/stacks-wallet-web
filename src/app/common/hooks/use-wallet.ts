@@ -9,7 +9,6 @@ import {
   useEncryptedSecretKeyState,
   useFinishSignInCallback,
   useSecretKey,
-  useSetLatestNonceCallback,
   useWalletState,
 } from '@app/store/wallet/wallet.hooks';
 import {
@@ -47,8 +46,6 @@ export function useWallet() {
 
   const hasGeneratedWallet = !!currentAccount;
 
-  const setLatestNonce = useSetLatestNonceCallback();
-
   const cancelAuthentication = useCallback(() => {
     if (!decodedAuthRequest || !authRequest) {
       return;
@@ -73,7 +70,6 @@ export function useWallet() {
     currentNetworkKey,
     encryptedSecretKey,
     finishSignIn,
-    setLatestNonce,
     cancelAuthentication,
     ...keyActions,
   };

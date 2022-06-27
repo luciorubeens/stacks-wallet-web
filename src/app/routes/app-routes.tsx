@@ -3,7 +3,6 @@ import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-
 
 import { RouteUrls } from '@shared/route-urls';
 import { useAnalytics } from '@app/common/hooks/analytics/use-analytics';
-import { useNextTxNonce } from '@app/common/hooks/account/use-next-tx-nonce';
 import { Container } from '@app/features/container/container';
 import { LoadingSpinner } from '@app/components/loading-spinner';
 import { MagicRecoveryCode } from '@app/pages/onboarding/magic-recovery-code/magic-recovery-code';
@@ -58,7 +57,6 @@ export function AppRoutes(): JSX.Element | null {
   const navigate = useNavigate();
   const analytics = useAnalytics();
 
-  useNextTxNonce();
   useSaveAuthRequest();
 
   useOnWalletLock(() => navigate(RouteUrls.Unlock));
